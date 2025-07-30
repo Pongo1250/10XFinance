@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Net Worth Results</title>
+    <!-- Load React and React DOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Load Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #eef2ff;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --text: #111827;
+            --text-light: #6b7280;
+            --bg: #f9fafb;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius-sm: 0.25rem;
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            margin: 2rem auto;
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 2rem 1.75rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.5px;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .results-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .chart-container {
+            flex: 1;
+            min-width: 300px;
+            height: 400px;
+        }
+
+        .summary-container {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .result {
+            background: linear-gradient(135deg, var(--bg) 0%, #f1f5f9 100%);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--success) 0%, var(--primary) 50%, var(--danger) 100%);
+        }
+
+        .net-worth {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0 1.5rem;
+            text-align: center;
+        }
+
+        .net-worth.negative {
+            color: var(--danger);
+        }
+
+        .details {
+            margin-top: 2rem;
+        }
+
+        .details h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            padding-top: 1rem;
+        }
+
+        .detail-label {
+            color: var(--text-light);
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .detail-value.positive {
+            color: var(--success);
+        }
+
+        .detail-value.negative {
+            color: var(--danger);
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .app {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            .results-container {
+                flex-direction: column;
+            }
+
+            .chart-container, .summary-container {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function ResultsPage() {
+            // Get data from URL parameters
+            const params = new URLSearchParams(window.location.search);
+            
+            // Parse asset and liability data from URL
+            const assetData = [];
+            const liabilityData = [];
+            
+            // Extract asset data
+            for (let i = 0; i < 5; i++) {
+                const name = params.get(`assetName${i}`);
+                const value = parseFloat(params.get(`assetValue${i}`)) || 0;
+                if (name) assetData.push({ name, value });
+            }
+            
+            // Extract liability data
+            for (let i = 0; i < 5; i++) {
+                const name = params.get(`liabilityName${i}`);
+                const value = parseFloat(params.get(`liabilityValue${i}`)) || 0;
+                if (name) liabilityData.push({ name, value });
+            }
+            
+            // Calculate totals
+            const totalAssets = assetData.reduce((sum, item) => sum + item.value, 0);
+            const totalLiabilities = liabilityData.reduce((sum, item) => sum + item.value, 0);
+            const netWorth = totalAssets - totalLiabilities;
+            
+            // Prepare chart data
+            const chartRef = React.useRef(null);
+            
+            React.useEffect(() => {
+                if (chartRef.current) {
+                    // Filter out zero values for the chart
+                    const chartLabels = [];
+                    const chartData = [];
+                    const backgroundColors = [];
+                    
+                    // Add assets to chart data
+                    assetData.forEach((item, index) => {
+                        if (item.value > 0) {
+                            chartLabels.push(item.name);
+                            chartData.push(item.value);
+                            // Different shades of green for assets
+                            const greenShades = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'];
+                            backgroundColors.push(greenShades[index % greenShades.length]);
+                        }
+                    });
+                    
+                    // Add liabilities to chart data
+                    liabilityData.forEach((item, index) => {
+                        if (item.value > 0) {
+                            chartLabels.push(item.name);
+                            chartData.push(item.value);
+                            // Different shades of red/orange for liabilities
+                            const redShades = ['#ef4444', '#f97316', '#f59e0b', '#fbbf24', '#fcd34d'];
+                            backgroundColors.push(redShades[index % redShades.length]);
+                        }
+                    });
+                    
+                    // Create chart if we have data
+                    if (chartData.length > 0) {
+                        const ctx = chartRef.current.getContext('2d');
+                        new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: chartLabels,
+                                datasets: [{
+                                    data: chartData,
+                                    backgroundColor: backgroundColors,
+                                    borderWidth: 1,
+                                    borderColor: '#fff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
+                                        labels: {
+                                            boxWidth: 12,
+                                            padding: 15,
+                                            font: {
+                                                size: 11
+                                            }
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const label = context.label || '';
+                                                const value = context.raw || 0;
+                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                const percentage = Math.round((value / total) * 100);
+                                                return `${label}: $${value.toLocaleString()} (${percentage}%)`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }, []);
+            
+            return (
+                <div className="app">
+                    <div className="header">
+                        <h1>Net Worth Results</h1>
+                        <p>Your financial summary at a glance</p>
+                    </div>
+                    <div className="content">
+                        <div className="result">
+                            <h2>Your Net Worth</h2>
+                            <div className={`net-worth ${netWorth < 0 ? 'negative' : ''}`}>
+                                {netWorth < 0 ? '-$' : '$'}{Math.abs(netWorth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </div>
+                            
+                            <div className="results-container">
+                                <div className="chart-container">
+                                    <canvas ref={chartRef}></canvas>
+                                </div>
+                                
+                                <div className="summary-container">
+                                    <div className="details">
+                                        <h3>Summary</h3>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Total Assets</span>
+                                            <span className="detail-value positive">${totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Total Liabilities</span>
+                                            <span className="detail-value negative">${totalLiabilities.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Net Worth</span>
+                                            <span className={`detail-value ${netWorth < 0 ? 'negative' : 'positive'}`}>
+                                                {netWorth < 0 ? '-$' : '$'}{Math.abs(netWorth).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <a href="index.html" className="btn">Back to Calculator</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the component
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ResultsPage />);
+    </script>
+</body>
+</html>
